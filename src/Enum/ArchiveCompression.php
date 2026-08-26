@@ -10,4 +10,5 @@ enum ArchiveCompression: string
     case Gzip = 'gzip';
     case Zstd = 'zstd';
     case Lz4 = 'lz4';
+    case Lz4hc = 'lz4hc';
 }
