@@ -5,10 +5,7 @@ declare(strict_types=1);
 namespace OpenRuntimes\Orchestrator;
 
 use OpenRuntimes\Orchestrator\Enum\RuntimeClass;
-use OpenRuntimes\Orchestrator\Exception\ClientException;
 use OpenRuntimes\Orchestrator\Model\Artifact\Artifact;
-use OpenRuntimes\Orchestrator\Model\Pool;
-use OpenRuntimes\Orchestrator\Model\PoolList;
 use OpenRuntimes\Orchestrator\Model\SandboxList;
 use OpenRuntimes\Orchestrator\Model\SandboxStatus;
 use OpenRuntimes\Orchestrator\Model\Volume;
@@ -37,25 +34,22 @@ final readonly class Sandboxes
     /**
      * Create a sandbox, returning once it is ready or failed.
      *
-     * Pass exactly one of `pool` or `image`. Naming a pool claims an already
-     * running pod, so the create is sub-second; naming an image builds a pod for
-     * this request instead — no standing capacity to configure, at the cost of a
-     * cold start, and `cpu`, `memory`, `runtimeClass` and `volumes` become
-     * yours to set rather than the pool's.
+     * The complete requested pod shape is matched transparently against warm
+     * capacity. A matching pool improves startup latency; it never changes the
+     * requested sandbox or whether a valid create is accepted.
      *
-     * @param  int|null  $port  Where the contract is served. Required with `image`.
+     * @param  int  $port  Where the contract is served.
      * @param  list<int>  $ports  Extra ports to expose, each at its own hostname.
      * @param  array<string, string>  $environment
      * @param  list<Artifact>  $artifacts  Materialized into the workspace before the sandbox reports ready.
-     * @param  list<Volume>  $volumes  Poolless sandboxes only; on a pool, volumes are a pool dimension.
+     * @param  list<Volume>  $volumes
      * @param  int|null  $timeoutSeconds  Bounds each request to the sandbox; 0 removes the bound, which
      *                                    long-lived sessions such as terminals and LSP need.
      * @param  int|null  $idleTimeoutSeconds  Tear down after this long with no traffic; 0 = until delete().
      */
     public function create(
-        ?string $pool = null,
-        ?string $image = null,
-        ?int $port = null,
+        string $image,
+        int $port,
         ?string $id = null,
         ?string $command = null,
         array $environment = [],
@@ -67,28 +61,12 @@ final readonly class Sandboxes
         ?RuntimeClass $runtimeClass = null,
         ?int $timeoutSeconds = null,
         ?int $idleTimeoutSeconds = null,
+        ?int $terminationGracePeriodSeconds = null,
     ): SandboxStatus {
-        if (($pool === null) === ($image === null)) {
-            throw new ClientException('Creating a sandbox takes exactly one of pool or image.');
-        }
-
-        if ($image !== null && $port === null) {
-            throw new ClientException('Creating a sandbox from an image requires a port.');
-        }
-
-        $payload = [];
-
-        if ($pool !== null) {
-            $payload['pool'] = $pool;
-        }
-
-        if ($image !== null) {
-            $payload['image'] = $image;
-        }
-
-        if ($port !== null) {
-            $payload['port'] = $port;
-        }
+        $payload = [
+            'image' => $image,
+            'port' => $port,
+        ];
 
         if ($id !== null && $id !== '') {
             $payload['id'] = $id;
@@ -134,6 +112,10 @@ final readonly class Sandboxes
             $payload['idleTimeoutSeconds'] = $idleTimeoutSeconds;
         }
 
+        if ($terminationGracePeriodSeconds !== null) {
+            $payload['terminationGracePeriodSeconds'] = $terminationGracePeriodSeconds;
+        }
+
         return SandboxStatus::fromArray($this->transport->json(Method::POST, '/v1/sandbox', $payload));
     }
 
@@ -154,18 +136,5 @@ final readonly class Sandboxes
     public function delete(string $sandboxId): void
     {
         $this->transport->discard(Method::DELETE, '/v1/sandbox/'.\rawurlencode($sandboxId));
-    }
-
-    /**
-     * List the configured sandbox pools with their live warm and claimed counts.
-     */
-    public function pools(): PoolList
-    {
-        return PoolList::fromArray($this->transport->json(Method::GET, '/v1/sandbox-pool'));
-    }
-
-    public function pool(string $poolId): Pool
-    {
-        return Pool::fromArray($this->transport->json(Method::GET, '/v1/sandbox-pool/'.\rawurlencode($poolId)));
     }
 }

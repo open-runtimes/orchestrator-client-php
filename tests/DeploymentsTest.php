@@ -75,6 +75,7 @@ final class DeploymentsTest extends TestCase
             timeoutSeconds: 300,
             startTimeoutSeconds: 120,
             readyTimeoutSeconds: 600,
+            terminationGracePeriodSeconds: 60,
         );
 
         $this->assertJsonStringEqualsJsonString(
@@ -85,7 +86,8 @@ final class DeploymentsTest extends TestCase
             .'"replicas":2,"concurrency":50,"autoscaling":{"minReplicas":0,"maxReplicas":10,"target":100},'
             .'"probes":{"readiness":{"path":"/healthz","periodMillis":500}},'
             .'"callback":{"url":"https://acme.test/hook","events":[],"key":"secret"},'
-            .'"runtimeClass":"gvisor","timeoutSeconds":300,"startTimeoutSeconds":120,"readyTimeoutSeconds":600}',
+            .'"runtimeClass":"gvisor","timeoutSeconds":300,"startTimeoutSeconds":120,"readyTimeoutSeconds":600,'
+            .'"terminationGracePeriodSeconds":60}',
             (string) $http->requests[0]->getBody(),
         );
     }

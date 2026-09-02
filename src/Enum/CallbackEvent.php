@@ -12,5 +12,4 @@ enum CallbackEvent: string
     case Exit = 'orchestrator.job.exit';
     case Complete = 'orchestrator.job.complete';
     case DeploymentResponse = 'orchestrator.deployment.response';
-    case PoolActivationResult = 'orchestrator.pool.activation.result';
 }

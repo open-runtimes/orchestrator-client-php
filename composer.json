@@ -1,6 +1,6 @@
 {
     "name": "open-runtimes/sdk-for-php",
-    "description": "PHP SDK for the Open Runtimes orchestrator: jobs, deployments, sandboxes, and pools.",
+    "description": "PHP SDK for the Open Runtimes orchestrator: jobs, deployments, and sandboxes.",
     "type": "library",
     "license": "MIT",
     "require": {

@@ -70,6 +70,7 @@ final readonly class Deployments
         ?int $timeoutSeconds = null,
         ?int $startTimeoutSeconds = null,
         ?int $readyTimeoutSeconds = null,
+        ?int $terminationGracePeriodSeconds = null,
     ): DeploymentStatus {
         $payload = [
             'id' => $id,
@@ -138,6 +139,10 @@ final readonly class Deployments
 
         if ($readyTimeoutSeconds !== null) {
             $payload['readyTimeoutSeconds'] = $readyTimeoutSeconds;
+        }
+
+        if ($terminationGracePeriodSeconds !== null) {
+            $payload['terminationGracePeriodSeconds'] = $terminationGracePeriodSeconds;
         }
 
         return DeploymentStatus::fromArray($this->transport->json(Method::POST, '/v1/deployments', $payload));

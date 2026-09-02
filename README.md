@@ -1,6 +1,6 @@
 # Orchestrator PHP Client
 
-PHP SDK for the Open Runtimes orchestrator: jobs, deployments, sandboxes, and pools.
+PHP SDK for the Open Runtimes orchestrator: jobs, deployments, and sandboxes.
 
 Server: https://github.com/open-runtimes/orchestrator
 
@@ -10,7 +10,6 @@ Each service is its own client over one configured `Utopia\Client`:
 $jobs        = new Jobs($http);
 $deployments = new Deployments($http);
 $sandboxes   = new Sandboxes($http);
-$pools       = new DeploymentPools($http);
 ```
 
 ```php
@@ -78,6 +77,7 @@ $web = $deployments->apply(
     hosts: ['acme.com', 'www.acme.com'],
     autoscaling: new Autoscaling(minReplicas: 0, maxReplicas: 10, target: 100),
     probes: new Probes(readiness: new Probe(path: '/healthz', periodMillis: 500)),
+    terminationGracePeriodSeconds: 60,
 );
 
 echo $web->url;               // primary host
@@ -114,10 +114,9 @@ $deployments->release('web');
 
 ## Sandboxes
 
-A sandbox is a live, isolated workspace you drive from the outside. Name a `pool`
-to claim an already-running pod (sub-second), or an `image` to have one built for
-this request (a cold start, but nothing to configure ahead of time and per-sandbox
-control over `cpu`, `memory`, `runtimeClass`, and `volumes`).
+A sandbox is a live, isolated workspace you drive from the outside. Every create
+declares its complete pod shape. If the operator has matching warm capacity, the
+orchestrator claims it transparently; otherwise it creates the same pod directly.
 
 ```php
 use OpenRuntimes\Orchestrator\Enum\RuntimeClass;
@@ -126,7 +125,8 @@ use OpenRuntimes\Orchestrator\Sandboxes;
 $sandboxes = new Sandboxes($http);
 
 $sandbox = $sandboxes->create(
-    pool: 'py',
+    image: 'python:3.12-slim',
+    port: 3000,
     id: 'agent-run-42',
     ports: [5173],                 // extra ports, each at its own hostname
     timeoutSeconds: 0,             // no per-request bound, for long-lived sessions
@@ -135,16 +135,13 @@ $sandbox = $sandboxes->create(
         new DownloadArtifact('code', 'https://acme.test/app.tar.gz', 'app.tar.gz'),
         new UnarchiveArtifact('unpack', 'app.tar.gz', '.', depends: 'code'),
     ],
+    runtimeClass: RuntimeClass::Gvisor,
+    terminationGracePeriodSeconds: 60,
 );
-
-// Without a pool — a port is required, since nothing else declares one.
-$sandboxes->create(image: 'python:3.12-slim', port: 3000, runtimeClass: RuntimeClass::Gvisor);
 
 $sandboxes->get('agent-run-42');
 $sandboxes->list();
 $sandboxes->delete('agent-run-42');   // invalidates the URL immediately
-
-$sandboxes->pools();                  // read-only: pools are operator config
 ```
 
 Running commands and moving files are **not** part of this API. They are an HTTP
@@ -164,51 +161,9 @@ A sandbox that fails to materialize is not an error response: `create()` returns
 status with `SandboxState::Failed` and an `error`, because the sandbox exists as a
 record you can read and delete.
 
-## Deployment pools
-
-A pool is standing warm capacity; an activation claims one warm pod and late-binds
-your payload onto it. Pools are operator configuration, so the API over them is
-read plus activate.
-
-```php
-use OpenRuntimes\Orchestrator\DeploymentPools;
-
-$pools = new DeploymentPools($http);
-
-$pools->list();
-$pools->get('node');
-
-$activation = $pools->activate(
-    poolId: 'node',
-    command: 'node server.js',
-    id: 'preview-7',            // choosing one buys idempotency
-    idleTimeoutSeconds: 600,
-);
-
-echo $activation->url;
-
-$pools->activations('node');
-$pools->activation('node', 'preview-7');
-$pools->deactivate('node', 'preview-7');
-```
-
-Pass `async: true` to get an accepted activation back immediately, with the result
-delivered to your callback as an `orchestrator.pool.activation.result` event. It
-requires a callback — nothing is stored to poll in the meantime — and the returned
-activation has no `id` yet.
-
-```php
-$pools->activate(
-    poolId: 'node',
-    command: 'node server.js',
-    callback: new Callback(
-        url: 'https://acme.test/hook',
-        events: [CallbackEvent::PoolActivationResult],
-        key: 'signing-secret',
-    ),
-    async: true,
-);
-```
+Warm pools are operator-managed and have no public API or user-visible IDs in
+orchestrator 2.0. They can reduce startup latency for matching deployments and
+sandboxes without changing either SDK create surface or its returned status.
 
 ## Errors
 

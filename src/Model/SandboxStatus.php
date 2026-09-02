@@ -21,7 +21,6 @@ final readonly class SandboxStatus
     public function __construct(
         public string $id,
         public SandboxState $status,
-        public ?string $poolId = null,
         public ?string $url = null,
         public array $urls = [],
         public ?string $image = null,
@@ -38,7 +37,6 @@ final readonly class SandboxStatus
         return new self(
             id: Data::string($data, 'id', 'sandbox status'),
             status: Data::enum($data, 'status', SandboxState::class, 'sandbox status'),
-            poolId: Data::optionalString($data, 'poolId', 'sandbox status'),
             url: Data::optionalString($data, 'url', 'sandbox status'),
             urls: Data::stringMap($data, 'urls', 'sandbox status'),
             image: Data::optionalString($data, 'image', 'sandbox status'),
