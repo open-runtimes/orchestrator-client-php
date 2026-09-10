@@ -180,12 +180,24 @@ try {
 }
 ```
 
-## Callback Signatures
+## Callbacks
+
+Verify the signature, then decode the CloudEvent. A callback that reports a
+failure carries an `error` with a stable `code` to branch on and a `message`
+to show:
 
 ```php
+use OpenRuntimes\Orchestrator\Callback\CloudEvent;
 use OpenRuntimes\Orchestrator\Callback\Signature;
 
-$valid = Signature::verifyEvent($rawBody, $headers['x-signature-256'] ?? '', $secret);
+if (! Signature::verifyEvent($rawBody, $headers['x-signature-256'] ?? '', $secret)) {
+    return;
+}
+
+$event = CloudEvent::fromArray(\json_decode($rawBody, true));
+if ($failure = $event->failure()) {
+    echo "{$event->type}: {$failure->code} — {$failure->message}";
+}
 ```
 
 ## Development
