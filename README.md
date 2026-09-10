@@ -188,6 +188,7 @@ to show:
 
 ```php
 use OpenRuntimes\Orchestrator\Callback\CloudEvent;
+use OpenRuntimes\Orchestrator\Callback\Failure;
 use OpenRuntimes\Orchestrator\Callback\Signature;
 
 if (! Signature::verifyEvent($rawBody, $headers['x-signature-256'] ?? '', $secret)) {
@@ -195,7 +196,7 @@ if (! Signature::verifyEvent($rawBody, $headers['x-signature-256'] ?? '', $secre
 }
 
 $event = CloudEvent::fromArray(\json_decode($rawBody, true));
-if ($failure = $event->failure()) {
+if ($failure = Failure::fromData($event->data)) {
     echo "{$event->type}: {$failure->code} — {$failure->message}";
 }
 ```

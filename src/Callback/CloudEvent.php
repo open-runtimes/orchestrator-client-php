@@ -52,12 +52,4 @@ final readonly class CloudEvent
             data: \is_array($data) ? $data : [],
         );
     }
-
-    /**
-     * The failure a callback reports, or null when it reports success.
-     */
-    public function failure(): ?Failure
-    {
-        return \array_key_exists('error', $this->data) ? Failure::fromValue($this->data['error']) : null;
-    }
 }

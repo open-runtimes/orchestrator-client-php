@@ -18,10 +18,20 @@ final readonly class Failure
     ) {}
 
     /**
+     * The failure a callback's data reports, or null when it reports success.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public static function fromData(array $data): ?self
+    {
+        return \array_key_exists('error', $data) ? self::fromValue($data['error']) : null;
+    }
+
+    /**
      * Orchestrator 2.2 sends `{code, message}`; a 2.1 orchestrator mid-upgrade
      * still sends the bare code as a string, so that is accepted with no message.
      */
-    public static function fromValue(mixed $error): self
+    private static function fromValue(mixed $error): self
     {
         if (\is_string($error) && $error !== '') {
             return new self($error, '');
