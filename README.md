@@ -180,13 +180,42 @@ try {
 }
 ```
 
-## Callback Signatures
+## Callbacks
+
+Verify the signature, then decode the CloudEvent. `CloudEvent` is a plain
+envelope; `CallbackEvent::decode()` turns its data into the callback for its
+type — `JobStart`, `JobLog`, `JobArtifact`, `JobExit`, `JobComplete`, or
+`DeploymentResponse`. A callback that can fail carries an `Error` with a stable
+`code` to branch on and a `message` to show:
 
 ```php
+use OpenRuntimes\Orchestrator\Callback\CloudEvent;
+use OpenRuntimes\Orchestrator\Callback\JobArtifact;
+use OpenRuntimes\Orchestrator\Callback\JobExit;
 use OpenRuntimes\Orchestrator\Callback\Signature;
+use OpenRuntimes\Orchestrator\Enum\CallbackEvent;
+use OpenRuntimes\Orchestrator\Enum\ErrorCode;
 
-$valid = Signature::verifyEvent($rawBody, $headers['x-signature-256'] ?? '', $secret);
+if (! Signature::verifyEvent($rawBody, $headers['x-signature-256'] ?? '', $secret)) {
+    return;
+}
+
+$event = CloudEvent::decode(
+    \json_decode($rawBody, true),
+    fn (string $type, array $data) => CallbackEvent::from($type)->decode($data),
+);
+
+match (true) {
+    $event->data instanceof JobArtifact && $event->data->error !== null
+        => $log->error("{$event->data->artifactId}: {$event->data->error->message}"),
+    $event->data instanceof JobExit && $event->data->error?->code === ErrorCode::JobOom
+        => $log->error('Out of memory'),
+    default => null,
+};
 ```
+
+`CloudEvent::fromArray()` keeps the data as the raw array when you would rather
+read it yourself.
 
 ## Development
 

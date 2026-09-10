@@ -73,6 +73,19 @@ final readonly class Data
     /**
      * @param  array<string, mixed>  $data
      */
+    public static function bool(array $data, string $key, string $context, bool $default = false): bool
+    {
+        $value = $data[$key] ?? $default;
+        if (! \is_bool($value)) {
+            throw new ClientException("Invalid {$context}: {$key} must be a boolean.");
+        }
+
+        return $value;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public static function optionalFloat(array $data, string $key, string $context): ?float
     {
         $value = $data[$key] ?? null;
