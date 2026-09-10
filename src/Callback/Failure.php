@@ -4,16 +4,18 @@ declare(strict_types=1);
 
 namespace OpenRuntimes\Orchestrator\Callback;
 
+use OpenRuntimes\Orchestrator\Enum\FailureCode;
 use OpenRuntimes\Orchestrator\Exception\ClientException;
+use OpenRuntimes\Orchestrator\Model\Data;
 
 /**
- * The error carried by a failed callback: a stable snake_case code to branch
- * on, and a sentence about this occurrence to show — never to parse.
+ * The error carried by a failed callback: a stable code to branch on, and a
+ * sentence about this occurrence to show — never to parse.
  */
 final readonly class Failure
 {
     public function __construct(
-        public string $code,
+        public FailureCode $code,
         public string $message,
     ) {}
 
@@ -24,27 +26,16 @@ final readonly class Failure
      */
     public static function fromData(array $data): ?self
     {
-        return \array_key_exists('error', $data) ? self::fromValue($data['error']) : null;
-    }
-
-    /**
-     * Orchestrator 2.2 sends `{code, message}`; a 2.1 orchestrator mid-upgrade
-     * still sends the bare code as a string, so that is accepted with no message.
-     */
-    private static function fromValue(mixed $error): self
-    {
-        if (\is_string($error) && $error !== '') {
-            return new self($error, '');
+        if (! \array_key_exists('error', $data)) {
+            return null;
         }
-        if (! \is_array($error) || ! \is_string($error['code'] ?? null) || $error['code'] === '') {
-            throw new ClientException('Invalid callback error: missing string code.');
+        if (! \is_array($data['error'])) {
+            throw new ClientException('Invalid callback error: must be an object.');
         }
 
-        $message = $error['message'] ?? '';
-        if (! \is_string($message)) {
-            throw new ClientException('Invalid callback error: message must be a string.');
-        }
+        /** @var FailureCode $code */
+        $code = Data::enum($data['error'], 'code', FailureCode::class, 'callback error');
 
-        return new self($error['code'], $message);
+        return new self($code, Data::string($data['error'], 'message', 'callback error'));
     }
 }

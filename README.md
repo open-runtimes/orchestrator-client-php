@@ -197,7 +197,7 @@ if (! Signature::verifyEvent($rawBody, $headers['x-signature-256'] ?? '', $secre
 
 $event = CloudEvent::fromArray(\json_decode($rawBody, true));
 if ($failure = Failure::fromData($event->data)) {
-    echo "{$event->type}: {$failure->code} — {$failure->message}";
+    echo "{$event->type}: {$failure->code->value} — {$failure->message}";
 }
 ```
 

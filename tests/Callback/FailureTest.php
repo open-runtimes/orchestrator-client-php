@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OpenRuntimes\Orchestrator\Tests\Callback;
 
 use OpenRuntimes\Orchestrator\Callback\Failure;
+use OpenRuntimes\Orchestrator\Enum\FailureCode;
 use OpenRuntimes\Orchestrator\Exception\ClientException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -16,7 +17,7 @@ final class FailureTest extends TestCase
         $failure = Failure::fromData(['status' => 'failed', 'error' => ['code' => 'archive_unknown_format', 'message' => 'Unrecognized archive format for source.tar.gz']]);
 
         $this->assertInstanceOf(Failure::class, $failure);
-        $this->assertSame('archive_unknown_format', $failure->code);
+        $this->assertSame(FailureCode::ArchiveUnknownFormat, $failure->code);
         $this->assertSame('Unrecognized archive format for source.tar.gz', $failure->message);
     }
 
@@ -25,23 +26,16 @@ final class FailureTest extends TestCase
         $this->assertNull(Failure::fromData(['status' => 'success']));
     }
 
-    public function test_accepts_legacy_string_error(): void
-    {
-        $failure = Failure::fromData(['error' => 'job_oom']);
-
-        $this->assertInstanceOf(Failure::class, $failure);
-        $this->assertSame('job_oom', $failure->code);
-        $this->assertSame('', $failure->message);
-    }
-
     /**
      * @return iterable<string, array{mixed}>
      */
     public static function malformedErrors(): iterable
     {
         yield 'null' => [null];
+        yield 'bare string' => ['job_oom'];
         yield 'no code' => [['message' => 'no code']];
-        yield 'non-string message' => [['code' => 'job_oom', 'message' => ['nested']]];
+        yield 'unknown code' => [['code' => 'job_teleported', 'message' => 'Job teleported']];
+        yield 'no message' => [['code' => 'job_oom']];
     }
 
     #[DataProvider('malformedErrors')]
