@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Rector\CodeQuality\Rector\Catch_\ThrowWithPreviousExceptionRector;
 use Rector\Config\RectorConfig;
+use Rector\PHPUnit\CodeQuality\Rector\MethodCall\AssertEmptyNullableObjectToAssertInstanceofRector;
 use Rector\Strict\Rector\Empty_\DisallowedEmptyRuleFixerRector;
 
 return RectorConfig::configure()
@@ -22,6 +23,8 @@ return RectorConfig::configure()
         phpunitCodeQuality: true
     )
     ->withSkip([
+        // assertNull on a ?Object return states the contract; assertNotInstanceOf obscures it.
+        AssertEmptyNullableObjectToAssertInstanceofRector::class,
         ThrowWithPreviousExceptionRector::class,
         DisallowedEmptyRuleFixerRector::class,
     ]);

@@ -46,7 +46,7 @@ final class CloudEventTest extends TestCase
     {
         $event = CloudEvent::fromArray(['time' => '2026-01-15T10:30:00Z', 'data' => ['status' => 'success']]);
 
-        $this->assertSame(null, $event->failure());
+        $this->assertNull($event->failure());
     }
 
     public function test_accepts_legacy_string_error(): void
