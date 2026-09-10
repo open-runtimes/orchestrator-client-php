@@ -2,15 +2,14 @@
 
 declare(strict_types=1);
 
-namespace OpenRuntimes\Orchestrator\Callback\Payload;
+namespace OpenRuntimes\Orchestrator\Callback;
 
-use OpenRuntimes\Orchestrator\Callback\Payload;
 use OpenRuntimes\Orchestrator\Model\Data;
 
 /**
  * orchestrator.job.start — the worker container started.
  */
-final readonly class JobStart implements Payload
+final readonly class JobStart implements Callback
 {
     public function __construct(
         public string $jobId,

@@ -183,18 +183,18 @@ try {
 ## Callbacks
 
 Verify the signature, then decode the CloudEvent. `CloudEvent` is a plain
-envelope; `CallbackEvent::decode()` turns its data into the payload for its
+envelope; `CallbackEvent::decode()` turns its data into the callback for its
 type — `JobStart`, `JobLog`, `JobArtifact`, `JobExit`, `JobComplete`, or
-`DeploymentResponse`. A payload that can fail carries a `Failure` with a stable
+`DeploymentResponse`. A callback that can fail carries an `Error` with a stable
 `code` to branch on and a `message` to show:
 
 ```php
 use OpenRuntimes\Orchestrator\Callback\CloudEvent;
-use OpenRuntimes\Orchestrator\Callback\Payload\JobArtifact;
-use OpenRuntimes\Orchestrator\Callback\Payload\JobExit;
+use OpenRuntimes\Orchestrator\Callback\JobArtifact;
+use OpenRuntimes\Orchestrator\Callback\JobExit;
 use OpenRuntimes\Orchestrator\Callback\Signature;
 use OpenRuntimes\Orchestrator\Enum\CallbackEvent;
-use OpenRuntimes\Orchestrator\Enum\FailureCode;
+use OpenRuntimes\Orchestrator\Enum\ErrorCode;
 
 if (! Signature::verifyEvent($rawBody, $headers['x-signature-256'] ?? '', $secret)) {
     return;
@@ -206,9 +206,9 @@ $event = CloudEvent::decode(
 );
 
 match (true) {
-    $event->data instanceof JobArtifact && $event->data->failure !== null
-        => $log->error("{$event->data->artifactId}: {$event->data->failure->message}"),
-    $event->data instanceof JobExit && $event->data->failure?->code === FailureCode::JobOom
+    $event->data instanceof JobArtifact && $event->data->error !== null
+        => $log->error("{$event->data->artifactId}: {$event->data->error->message}"),
+    $event->data instanceof JobExit && $event->data->error?->code === ErrorCode::JobOom
         => $log->error('Out of memory'),
     default => null,
 };

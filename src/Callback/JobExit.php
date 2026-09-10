@@ -2,10 +2,8 @@
 
 declare(strict_types=1);
 
-namespace OpenRuntimes\Orchestrator\Callback\Payload;
+namespace OpenRuntimes\Orchestrator\Callback;
 
-use OpenRuntimes\Orchestrator\Callback\Failure;
-use OpenRuntimes\Orchestrator\Callback\Payload;
 use OpenRuntimes\Orchestrator\Model\Data;
 
 /**
@@ -13,7 +11,7 @@ use OpenRuntimes\Orchestrator\Model\Data;
  * before the worker could run; reason is the backend's own detail ("oom") and
  * null when it has nothing to add beyond the code.
  */
-final readonly class JobExit implements Payload
+final readonly class JobExit implements Callback
 {
     public function __construct(
         public string $jobId,
@@ -21,7 +19,7 @@ final readonly class JobExit implements Payload
         public ?string $reason,
         public string $image,
         public ?float $durationSeconds,
-        public ?Failure $failure,
+        public ?Error $error,
         /** @var array<string, string> */
         public array $meta,
     ) {}
@@ -34,7 +32,7 @@ final readonly class JobExit implements Payload
             reason: Data::optionalString($data, 'reason', 'job exit'),
             image: Data::string($data, 'image', 'job exit'),
             durationSeconds: Data::optionalFloat($data, 'durationSeconds', 'job exit'),
-            failure: Failure::fromData($data),
+            error: Error::fromData($data),
             meta: Data::stringMap($data, 'meta', 'job exit'),
         );
     }

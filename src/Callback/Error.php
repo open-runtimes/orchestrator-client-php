@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace OpenRuntimes\Orchestrator\Callback;
 
-use OpenRuntimes\Orchestrator\Enum\FailureCode;
+use OpenRuntimes\Orchestrator\Enum\ErrorCode;
 use OpenRuntimes\Orchestrator\Exception\ClientException;
 use OpenRuntimes\Orchestrator\Model\Data;
 
@@ -12,15 +12,15 @@ use OpenRuntimes\Orchestrator\Model\Data;
  * The error carried by a failed callback: a stable code to branch on, and a
  * sentence about this occurrence to show — never to parse.
  */
-final readonly class Failure
+final readonly class Error
 {
     public function __construct(
-        public FailureCode $code,
+        public ErrorCode $code,
         public string $message,
     ) {}
 
     /**
-     * The failure a callback's data reports, or null when it reports success.
+     * The error a callback's data reports, or null when it reports success.
      *
      * @param  array<string, mixed>  $data
      */
@@ -33,8 +33,8 @@ final readonly class Failure
             throw new ClientException('Invalid callback error: must be an object.');
         }
 
-        /** @var FailureCode $code */
-        $code = Data::enum($data['error'], 'code', FailureCode::class, 'callback error');
+        /** @var ErrorCode $code */
+        $code = Data::enum($data['error'], 'code', ErrorCode::class, 'callback error');
 
         return new self($code, Data::string($data['error'], 'message', 'callback error'));
     }

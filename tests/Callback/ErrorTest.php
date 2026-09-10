@@ -4,26 +4,26 @@ declare(strict_types=1);
 
 namespace OpenRuntimes\Orchestrator\Tests\Callback;
 
-use OpenRuntimes\Orchestrator\Callback\Failure;
-use OpenRuntimes\Orchestrator\Enum\FailureCode;
+use OpenRuntimes\Orchestrator\Callback\Error;
+use OpenRuntimes\Orchestrator\Enum\ErrorCode;
 use OpenRuntimes\Orchestrator\Exception\ClientException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
-final class FailureTest extends TestCase
+final class ErrorTest extends TestCase
 {
     public function test_reads_code_and_message(): void
     {
-        $failure = Failure::fromData(['status' => 'failed', 'error' => ['code' => 'archive_unknown_format', 'message' => 'Unrecognized archive format for source.tar.gz']]);
+        $error = Error::fromData(['status' => 'failed', 'error' => ['code' => 'archive_unknown_format', 'message' => 'Unrecognized archive format for source.tar.gz']]);
 
-        $this->assertInstanceOf(Failure::class, $failure);
-        $this->assertSame(FailureCode::ArchiveUnknownFormat, $failure->code);
-        $this->assertSame('Unrecognized archive format for source.tar.gz', $failure->message);
+        $this->assertInstanceOf(Error::class, $error);
+        $this->assertSame(ErrorCode::ArchiveUnknownFormat, $error->code);
+        $this->assertSame('Unrecognized archive format for source.tar.gz', $error->message);
     }
 
-    public function test_success_has_no_failure(): void
+    public function test_success_has_no_error(): void
     {
-        $this->assertNull(Failure::fromData(['status' => 'success']));
+        $this->assertNull(Error::fromData(['status' => 'success']));
     }
 
     /**
@@ -43,6 +43,6 @@ final class FailureTest extends TestCase
     {
         $this->expectException(ClientException::class);
 
-        Failure::fromData(['error' => $error]);
+        Error::fromData(['error' => $error]);
     }
 }

@@ -8,7 +8,7 @@ namespace OpenRuntimes\Orchestrator\Enum;
  * The stable half of a callback's error. See the orchestrator's callbacks
  * guide for what each one means.
  */
-enum FailureCode: string
+enum ErrorCode: string
 {
     // orchestrator.job.artifact
     case ArchiveEmpty = 'archive_empty';

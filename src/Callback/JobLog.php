@@ -2,15 +2,14 @@
 
 declare(strict_types=1);
 
-namespace OpenRuntimes\Orchestrator\Callback\Payload;
+namespace OpenRuntimes\Orchestrator\Callback;
 
-use OpenRuntimes\Orchestrator\Callback\Payload;
 use OpenRuntimes\Orchestrator\Model\Data;
 
 /**
  * orchestrator.job.log — a batch of stdout or stderr lines.
  */
-final readonly class JobLog implements Payload
+final readonly class JobLog implements Callback
 {
     public function __construct(
         public string $jobId,

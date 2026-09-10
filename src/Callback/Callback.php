@@ -8,7 +8,7 @@ namespace OpenRuntimes\Orchestrator\Callback;
  * The data of one callback, typed by its event. Decode a raw envelope into
  * one with CallbackEvent::decode() — see CloudEvent::decode().
  */
-interface Payload
+interface Callback
 {
     /**
      * @param  array<string, mixed>  $data

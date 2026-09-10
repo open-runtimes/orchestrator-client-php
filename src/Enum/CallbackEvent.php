@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace OpenRuntimes\Orchestrator\Enum;
 
-use OpenRuntimes\Orchestrator\Callback\Payload;
-use OpenRuntimes\Orchestrator\Callback\Payload\DeploymentResponse;
-use OpenRuntimes\Orchestrator\Callback\Payload\JobArtifact;
-use OpenRuntimes\Orchestrator\Callback\Payload\JobComplete;
-use OpenRuntimes\Orchestrator\Callback\Payload\JobExit;
-use OpenRuntimes\Orchestrator\Callback\Payload\JobLog;
-use OpenRuntimes\Orchestrator\Callback\Payload\JobStart;
+use OpenRuntimes\Orchestrator\Callback\Callback;
+use OpenRuntimes\Orchestrator\Callback\DeploymentResponse;
+use OpenRuntimes\Orchestrator\Callback\JobArtifact;
+use OpenRuntimes\Orchestrator\Callback\JobComplete;
+use OpenRuntimes\Orchestrator\Callback\JobExit;
+use OpenRuntimes\Orchestrator\Callback\JobLog;
+use OpenRuntimes\Orchestrator\Callback\JobStart;
 
 enum CallbackEvent: string
 {
@@ -22,13 +22,13 @@ enum CallbackEvent: string
     case DeploymentResponse = 'orchestrator.deployment.response';
 
     /**
-     * The typed payload of an event of this kind. Pass to CloudEvent::decode():
+     * The typed callback of an event of this kind. Pass to CloudEvent::decode():
      *
      *     CloudEvent::decode($raw, fn (string $type, array $data) => CallbackEvent::from($type)->decode($data))
      *
      * @param  array<string, mixed>  $data
      */
-    public function decode(array $data): Payload
+    public function decode(array $data): Callback
     {
         return match ($this) {
             self::Start => JobStart::fromArray($data),

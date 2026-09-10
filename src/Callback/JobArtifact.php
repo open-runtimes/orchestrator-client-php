@@ -2,18 +2,16 @@
 
 declare(strict_types=1);
 
-namespace OpenRuntimes\Orchestrator\Callback\Payload;
+namespace OpenRuntimes\Orchestrator\Callback;
 
-use OpenRuntimes\Orchestrator\Callback\Failure;
-use OpenRuntimes\Orchestrator\Callback\Payload;
 use OpenRuntimes\Orchestrator\Model\Data;
 
 /**
- * orchestrator.job.artifact — one artifact finished. On failure, $failure says
+ * orchestrator.job.artifact — one artifact finished. On failure, $error says
  * why; format and compression are what the artifact was sniffed to be, null
  * when it was never read far enough to tell.
  */
-final readonly class JobArtifact implements Payload
+final readonly class JobArtifact implements Callback
 {
     public function __construct(
         public string $jobId,
@@ -24,7 +22,7 @@ final readonly class JobArtifact implements Payload
         public ?float $durationSeconds,
         public ?string $format,
         public ?string $compression,
-        public ?Failure $failure,
+        public ?Error $error,
         /** @var array<string, string> */
         public array $meta,
     ) {}
@@ -40,7 +38,7 @@ final readonly class JobArtifact implements Payload
             durationSeconds: Data::optionalFloat($data, 'durationSeconds', 'job artifact'),
             format: Data::optionalString($data, 'format', 'job artifact'),
             compression: Data::optionalString($data, 'compression', 'job artifact'),
-            failure: Failure::fromData($data),
+            error: Error::fromData($data),
             meta: Data::stringMap($data, 'meta', 'job artifact'),
         );
     }

@@ -2,20 +2,18 @@
 
 declare(strict_types=1);
 
-namespace OpenRuntimes\Orchestrator\Callback\Payload;
+namespace OpenRuntimes\Orchestrator\Callback;
 
-use OpenRuntimes\Orchestrator\Callback\Failure;
-use OpenRuntimes\Orchestrator\Callback\Payload;
 use OpenRuntimes\Orchestrator\Exception\ClientException;
 use OpenRuntimes\Orchestrator\Model\Data;
 
 /**
  * orchestrator.deployment.response — an async request completed. statusCode and
- * body are null when the request never reached a replica; $failure then says
+ * body are null when the request never reached a replica; $error then says
  * why. A body that is not valid UTF-8 arrives base64-encoded with bodyEncoding
  * "base64". requestHeaders is null when it was dropped for size.
  */
-final readonly class DeploymentResponse implements Payload
+final readonly class DeploymentResponse implements Callback
 {
     public function __construct(
         public string $deploymentId,
@@ -31,7 +29,7 @@ final readonly class DeploymentResponse implements Payload
         public ?string $body,
         public ?string $bodyEncoding,
         public bool $bodyTruncated,
-        public ?Failure $failure,
+        public ?Error $error,
     ) {}
 
     public static function fromArray(array $data): static
@@ -55,7 +53,7 @@ final readonly class DeploymentResponse implements Payload
             body: Data::optionalString($data, 'body', 'deployment response'),
             bodyEncoding: Data::optionalString($data, 'bodyEncoding', 'deployment response'),
             bodyTruncated: Data::bool($data, 'bodyTruncated', 'deployment response'),
-            failure: Failure::fromData($data),
+            error: Error::fromData($data),
         );
     }
 }
