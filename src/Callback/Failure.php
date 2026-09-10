@@ -31,7 +31,10 @@ final readonly class Failure
         }
 
         $message = $error['message'] ?? '';
+        if (! \is_string($message)) {
+            throw new ClientException('Invalid callback error: message must be a string.');
+        }
 
-        return new self($error['code'], \is_string($message) ? $message : '');
+        return new self($error['code'], $message);
     }
 }

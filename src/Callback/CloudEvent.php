@@ -58,6 +58,6 @@ final readonly class CloudEvent
      */
     public function failure(): ?Failure
     {
-        return isset($this->data['error']) ? Failure::fromValue($this->data['error']) : null;
+        return \array_key_exists('error', $this->data) ? Failure::fromValue($this->data['error']) : null;
     }
 }

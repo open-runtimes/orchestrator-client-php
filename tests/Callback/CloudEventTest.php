@@ -7,6 +7,7 @@ namespace OpenRuntimes\Orchestrator\Tests\Callback;
 use OpenRuntimes\Orchestrator\Callback\CloudEvent;
 use OpenRuntimes\Orchestrator\Callback\Failure;
 use OpenRuntimes\Orchestrator\Exception\ClientException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class CloudEventTest extends TestCase
@@ -45,7 +46,7 @@ final class CloudEventTest extends TestCase
     {
         $event = CloudEvent::fromArray(['time' => '2026-01-15T10:30:00Z', 'data' => ['status' => 'success']]);
 
-        $this->assertNotInstanceOf(Failure::class, $event->failure());
+        $this->assertSame(null, $event->failure());
     }
 
     public function test_accepts_legacy_string_error(): void
@@ -58,11 +59,21 @@ final class CloudEventTest extends TestCase
         $this->assertSame('', $failure->message);
     }
 
-    public function test_rejects_error_without_code(): void
+    /**
+     * @return iterable<string, array{mixed}>
+     */
+    public static function malformedErrors(): iterable
+    {
+        yield 'null' => [null];
+        yield 'no code' => [['message' => 'no code']];
+        yield 'non-string message' => [['code' => 'job_oom', 'message' => ['nested']]];
+    }
+
+    #[DataProvider('malformedErrors')]
+    public function test_rejects_malformed_error(mixed $error): void
     {
         $this->expectException(ClientException::class);
-        $this->expectExceptionMessage('Invalid callback error: missing string code.');
 
-        CloudEvent::fromArray(['time' => '2026-01-15T10:30:00Z', 'data' => ['error' => ['message' => 'no code']]])->failure();
+        CloudEvent::fromArray(['time' => '2026-01-15T10:30:00Z', 'data' => ['error' => $error]])->failure();
     }
 }
